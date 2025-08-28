@@ -1,6 +1,9 @@
 # 🎮 Guess-Em-All  
 
-![Guess-Em-All Logo](src/assets/logo.png)
+<p align="center">
+  <img src="src/assets/logo.png" alt="Guess-Em-All Logo" width="300">
+</p>
+
 
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/Swapnanilb/Guess-Em-All?style=for-the-badge&logo=github&color=blue)
