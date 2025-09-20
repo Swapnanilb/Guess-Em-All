@@ -87,7 +87,7 @@ export default function PokemonDetailsView({ id, caught, escaped, onBack }) {
     );
 
   const status = caught.has(id) ? 'caught' : 'escaped';
-  const extraData = status === 'caught' ? caught.get(id) : escaped.get(id);
+  const extraData = caught.has(id) ? caught.get(id) : escaped.get(id);
 
   return (
     <motion.div
@@ -109,30 +109,30 @@ export default function PokemonDetailsView({ id, caught, escaped, onBack }) {
         {/* Image & Name */}
         <div className="flex flex-col items-center">
           <img
-            src={
-              status === 'caught'
-                ? getArtwork(pokemon)          // real artwork only when caught
-                : '/images/silhouette.png'    // generic shadow otherwise
-            }
-            alt={status === 'caught' ? pokemon.name : 'Mystery Pokemon'}
+            src={getArtwork(pokemon)}
+            alt={pokemon.name}
             className={`w-full max-w-sm object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] ${
-              status !== 'caught' ? 'brightness-0 contrast-200' : ''
+              status === 'escaped' ? 'brightness-0 contrast-200' : ''
             }`}
             onError={(ev) => (ev.target.style.display = 'none')}
           />
           <h2 className="text-2xl font-bold capitalize mt-4">
             {status === 'escaped' ? '???' : pokemon.name}
           </h2>
-          <div className="flex gap-2 mt-2">
-            {pokemon.types.map((type) => (
-              <span
-                key={type.type.name}
-                className="px-3 py-1 text-xs rounded-full bg-zinc-700 capitalize"
-              >
-                {type.type.name}
-              </span>
-            ))}
-          </div>
+
+          {/* Show types only if caught */}
+          {status === 'caught' && (
+            <div className="flex gap-2 mt-2">
+              {pokemon.types.map((type) => (
+                <span
+                  key={type.type.name}
+                  className="px-3 py-1 text-xs rounded-full bg-zinc-700 capitalize"
+                >
+                  {type.type.name}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Details, Stats, Evolution */}
@@ -142,25 +142,45 @@ export default function PokemonDetailsView({ id, caught, escaped, onBack }) {
             <p>
               <strong>Status:</strong> <span className="capitalize">{status}</span>
             </p>
-            {extraData.caughtDate && (
+            {extraData?.caughtDate && (
               <p>
                 <strong>Caught on:</strong>{' '}
                 {new Date(extraData.caughtDate).toLocaleDateString()}
               </p>
             )}
-            {extraData.attemptsUsed && (
+            {extraData?.date && status === 'escaped' && (
               <p>
-                <strong>Number of tries:</strong> {extraData.attemptsUsed}
+                <strong>Escaped on:</strong>{' '}
+                {new Date(extraData.date).toLocaleDateString()}
+              </p>
+            )}
+            {typeof extraData?.attemptsUsed === 'number' && (
+              <p>
+                <strong>Number of tries:</strong>{' '}
+                {extraData.attemptsUsed}
+                {typeof extraData.maxAttempts === 'number'
+                  ? ` / ${extraData.maxAttempts}`
+                  : ''}
               </p>
             )}
           </div>
 
-          <h3 className="text-xl font-semibold mt-6 mb-3">Base Stats</h3>
-          <div className="space-y-2">
-            {pokemon.stats.map((stat) => (
-              <StatBar key={stat.stat.name} label={stat.stat.name} value={stat.base_stat} max={255} />
-            ))}
-          </div>
+          {/* Show stats ONLY if caught */}
+          {status === 'caught' && (
+            <>
+              <h3 className="text-xl font-semibold mt-6 mb-3">Base Stats</h3>
+              <div className="space-y-2">
+                {pokemon.stats.map((stat) => (
+                  <StatBar
+                    key={stat.stat.name}
+                    label={stat.stat.name}
+                    value={stat.base_stat}
+                    max={255}
+                  />
+                ))}
+              </div>
+            </>
+          )}
 
           <h3 className="text-xl font-semibold mt-6 mb-3">Evolution Chain</h3>
           <EvolutionChain chain={details.evolutionChain} />

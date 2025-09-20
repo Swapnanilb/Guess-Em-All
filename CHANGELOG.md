@@ -9,7 +9,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### 🎯 Roadmap
 - ✨ feat(upcoming): implement hint system (type/first letter)
 - ✨ feat(upcoming): add achievements system
-- ✨ feat(upcoming): add login functionality for users
+- 🎨 feat(upcoming): create new landing page with game preview
+- 📊 feat(upcoming): add leaderboard system
+- 🔔 feat(upcoming): implement notification system for streaks
+
+---
+
+## [0.2.0] - 2025-01-24
+
+### 🔐 Authentication System
+- ✨ feat: implement user registration and login system
+- ✨ feat: add JWT token-based session management
+- ✨ feat: integrate bcrypt password hashing for security
+- ✨ feat: add Google reCAPTCHA v2 for bot protection
+- ✨ feat: implement Pokemon-themed random username generator
+- 🎨 style: add real-time password strength validation with visual indicators
+- 🎨 style: create toggle between login/register modes
+- 🔒 security: move sensitive credentials to environment variables
+
+### 🗄️ Database Integration
+- ✨ feat: integrate MongoDB Atlas with X.509 certificate authentication
+- ✨ feat: implement user data persistence (caught/escaped Pokemon)
+- ✨ feat: add automatic data synchronization between client and server
+- 🛠️ chore: add proper error handling for database operations
+
+### 🎨 UI/UX Improvements
+- 🎨 style: enhance login form with dark theme styling
+- 🎨 style: add form validation with inline error messages
+- 🎨 style: implement responsive design for mobile devices
+- ✨ feat: add loading states and smooth transitions
+- 🐛 fix: resolve layout issues and improve form accessibility
+
+### 🔧 Technical Improvements
+- 🛠️ chore: add dotenv for environment variable management
+- 🛠️ chore: implement proper API error handling
+- 🛠️ chore: add comprehensive .gitignore for security
+- 🔒 security: implement server-side input validation
+- 🔒 security: add CORS and security headers
 
 ---
 
@@ -56,3 +92,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 [Unreleased]: https://github.com/Swapnanilb/Guess-Em-All/compare/v0.1.0...HEAD  
 [0.1.0]: https://github.com/Swapnanilb/Guess-Em-All/releases/tag/v0.1.0
+[Unreleased]: https://github.com/Swapnanilb/Guess-Em-All/compare/v0.2.0...HEAD  
+[0.2.0]: https://github.com/Swapnanilb/Guess-Em-All/releases/tag/v0.2.0

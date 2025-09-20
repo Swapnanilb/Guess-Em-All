@@ -4,16 +4,19 @@ import React, { useEffect, useState } from "react";
 import { useLocalStorage } from './hooks/useLocalStorage.js';
 import { usePokemon } from './hooks/usePokemon.js';
 import { useGameState } from './hooks/useGameState.js';
+import { useAuth } from './hooks/useAuth.js';
 import { normalizeName } from './utils/helpers.js';
 import { LS_KEYS } from './utils/constants.js';
 import Header from './components/common/Header.jsx';
 import Footer from './components/common/Footer.jsx';
 import GameScreen from './components/game/GameScreen.jsx';
 import PokedexView from './components/pokedex/PokedexView.jsx';
+import LoginForm from './components/auth/LoginForm.jsx';
 
 export default function App() {
   const [view, setView] = useState("play");
   const [selectedGen, setSelectedGen] = useState(null);
+  const { user, loading: authLoading, login, logout, saveUserData } = useAuth();
 
   useEffect(() => {
     document.documentElement.style.height = '100%';
@@ -30,6 +33,21 @@ export default function App() {
   const [caught, setCaught] = useLocalStorage(LS_KEYS.caught);
   const [escaped, setEscaped] = useLocalStorage(LS_KEYS.escaped);
 
+  // Initialize user data from MongoDB
+  useEffect(() => {
+    if (user && user.caught) {
+      setCaught(new Map(Object.entries(user.caught)));
+      setEscaped(new Map(Object.entries(user.escaped)));
+    }
+  }, [user]);
+
+  // Save to MongoDB when data changes
+  useEffect(() => {
+    if (user && (caught.size > 0 || escaped.size > 0)) {
+      saveUserData(caught, escaped);
+    }
+  }, [caught, escaped, user, saveUserData]);
+
   const { getRandomUncaughtPokemon } = usePokemon(caught);
   const {
     current,
@@ -43,8 +61,8 @@ export default function App() {
     result,
     setResult,
     startRound,
-    streak,       // ✅ use streak from hook
-    setStreak,    // ✅ updater from hook
+    streak,
+    setStreak,
   } = useGameState();
 
   const totalCaught = caught.size;
@@ -65,19 +83,29 @@ export default function App() {
     e?.preventDefault?.();
     if (!current) return;
 
+    // ✅ Determine max attempts based on rarity
+    const maxAttempts =
+      current.rarity === "common" ? 5 :
+      current.rarity === "rare" ? 3 : 1;
+
     const correct = normalizeName(guess) === normalizeName(current.pokemon.name);
-    const attemptsUsed = 3 - attemptsLeft + 1;
+
+    // ✅ Always calculates correctly (never -1)
+    const attemptsUsed = maxAttempts - attemptsLeft + 1;
 
     if (correct) {
       setResult("caught");
       setRevealed(true);
-      setStreak((s) => s + 1);   // ✅ increment streak on success
+      setStreak((s) => s + 1);
+
       const id = current.pokemon.id;
       const nextCaught = new Map(caught);
-      nextCaught.set(id, { caughtDate: new Date().toISOString(), attemptsUsed });
+      nextCaught.set(id, {
+        caughtDate: new Date().toISOString(),
+        attemptsUsed,
+      });
       setCaught(nextCaught);
-      
-      // If it was previously escaped, remove it from that list
+
       if (escaped.has(id)) {
         const nextEsc = new Map(escaped);
         nextEsc.delete(id);
@@ -89,10 +117,14 @@ export default function App() {
       } else {
         setResult("fled");
         setRevealed(true);
-        setStreak(0);             // ✅ reset streak on fail
+        setStreak(0);
+
         const id = current.pokemon.id;
         const nextEsc = new Map(escaped);
-        nextEsc.set(id, { date: new Date().toISOString() });
+        nextEsc.set(id, {
+          date: new Date().toISOString(),
+          attemptsUsed: maxAttempts, // used all attempts
+        });
         setEscaped(nextEsc);
       }
     }
@@ -106,10 +138,13 @@ export default function App() {
     if (current) {
       setResult('ran');
       setRevealed(true);
-      setStreak(0);   // ✅ running also resets streak
+      setStreak(0);
       const id = current.pokemon.id;
       const nextEsc = new Map(escaped);
-      nextEsc.set(id, { date: new Date().toISOString() });
+      nextEsc.set(id, {
+        date: new Date().toISOString(),
+        attemptsUsed: 0, // ran away voluntarily
+      });
       setEscaped(nextEsc);
     }
   }
@@ -118,7 +153,10 @@ export default function App() {
     if (!confirm("Reset all progress? This cannot be undone.")) return;
     setCaught(new Map());
     setEscaped(new Map());
-    setStreak(0);  // ✅ reset streak on full reset
+    setStreak(0);
+    if (user) {
+      saveUserData(new Map(), new Map());
+    }
     startRound(getRandomUncaughtPokemon);
   }
 
@@ -135,9 +173,21 @@ export default function App() {
     </div>
   );
 
+  if (authLoading) {
+    return (
+      <div className="h-screen w-screen bg-gradient-to-b from-slate-900 to-black text-white flex items-center justify-center">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginForm onLogin={login} />;
+  }
+
   return (
     <div className="h-screen w-screen bg-gradient-to-b from-slate-900 to-black text-white flex flex-col overflow-hidden">
-      <Header view={view} setView={setView} resetProgress={resetProgress} />
+      <Header view={view} setView={setView} resetProgress={resetProgress} user={user} onLogout={logout} />
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-6 overflow-y-auto">
         {view === "play" ? (
@@ -155,7 +205,7 @@ export default function App() {
             onRun={handleRunClick}
             totalCaught={totalCaught}
             totalEscaped={totalEscaped}
-            streak={streak}   // ✅ pass streak into GameScreen
+            streak={streak}
           />
         ) : (
           <PokedexView
