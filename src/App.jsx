@@ -12,11 +12,18 @@ import Footer from './components/common/Footer.jsx';
 import GameScreen from './components/game/GameScreen.jsx';
 import PokedexView from './components/pokedex/PokedexView.jsx';
 import LoginForm from './components/auth/LoginForm.jsx';
+import LandingPage from './components/LandingPage.jsx';
 
 export default function App() {
   const [view, setView] = useState("play");
   const [selectedGen, setSelectedGen] = useState(null);
-  const { user, loading: authLoading, login, logout, saveUserData } = useAuth();
+  const [showLanding, setShowLanding] = useState(true);
+  const { user, loading: authLoading, login, logout: authLogout, saveUserData } = useAuth();
+
+  const handleLogout = () => {
+    authLogout();
+    setShowLanding(true);
+  };
 
   useEffect(() => {
     document.documentElement.style.height = '100%';
@@ -181,13 +188,17 @@ export default function App() {
     );
   }
 
+  if (showLanding && !user) {
+    return <LandingPage onGetStarted={() => setShowLanding(false)} />;
+  }
+
   if (!user) {
-    return <LoginForm onLogin={login} />;
+    return <LoginForm onLogin={login} onBackToLanding={() => setShowLanding(true)} />;
   }
 
   return (
     <div className="h-screen w-screen bg-gradient-to-b from-slate-900 to-black text-white flex flex-col overflow-hidden">
-      <Header view={view} setView={setView} resetProgress={resetProgress} user={user} onLogout={logout} />
+      <Header view={view} setView={setView} resetProgress={resetProgress} user={user} onLogout={handleLogout} />
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-6 overflow-y-auto">
         {view === "play" ? (

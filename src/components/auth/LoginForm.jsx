@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
-export default function LoginForm({ onLogin }) {
+export default function LoginForm({ onLogin, onBackToLanding }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isRegister, setIsRegister] = useState(false);
@@ -143,7 +143,15 @@ export default function LoginForm({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-slate-900 to-black">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-slate-900 to-black relative">
+      <motion.button
+        onClick={onBackToLanding}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="absolute top-6 left-6 px-4 py-2 bg-zinc-700/50 hover:bg-zinc-600/50 border border-zinc-600 rounded-lg text-zinc-300 hover:text-white transition-all duration-300 flex items-center gap-2 text-sm backdrop-blur-sm"
+      >
+        ← Back
+      </motion.button>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

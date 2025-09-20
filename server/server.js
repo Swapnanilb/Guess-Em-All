@@ -181,7 +181,7 @@ app.post('/api/user/save', verifyToken, async (req, res) => {
   const { caught, escaped } = req.body;
   
   if (!db) {
-    return res.status(500).json({ error: 'Database not connected' });
+    return res.status(503).json({ error: 'Database not available. Please try again later.' });
   }
   
   try {
